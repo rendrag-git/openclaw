@@ -489,6 +489,8 @@ importers:
 
   extensions/open-prose: {}
 
+  extensions/openagent-acp: {}
+
   extensions/openai: {}
 
   extensions/opencode: {}
@@ -498,6 +500,8 @@ importers:
   extensions/openrouter: {}
 
   extensions/openshell: {}
+
+  extensions/orchestrator-control: {}
 
   extensions/perplexity: {}
 

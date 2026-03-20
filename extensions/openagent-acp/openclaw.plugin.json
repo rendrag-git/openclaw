@@ -1,0 +1,24 @@
+{
+  "id": "openagent-acp",
+  "name": "OpenAgent ACP Runtime",
+  "description": "ACP runtime backend powered by the openagent runtime adapter.",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "modulePath": {
+        "type": "string"
+      },
+      "jobRootDir": {
+        "type": "string"
+      },
+      "parkedSessionDir": {
+        "type": "string"
+      },
+      "defaultWorker": {
+        "type": "string",
+        "enum": ["plan", "execute", "check", "act"]
+      }
+    }
+  }
+}

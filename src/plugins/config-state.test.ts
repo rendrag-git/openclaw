@@ -218,4 +218,39 @@ describe("resolveEnableState", () => {
     const state = resolveEnableState("google", "bundled", normalizePluginsConfig({}));
     expect(state).toEqual({ enabled: true });
   });
+
+  it("requires explicit plugin enablement for bundled orchestrator plugins", () => {
+    const openagentDefault = resolveEnableState(
+      "openagent-acp",
+      "bundled",
+      normalizePluginsConfig({}),
+    );
+    const orchestratorDefault = resolveEnableState(
+      "orchestrator-control",
+      "bundled",
+      normalizePluginsConfig({}),
+    );
+    const explicitlyEnabled = normalizePluginsConfig({
+      entries: {
+        "openagent-acp": {
+          enabled: true,
+        },
+        "orchestrator-control": {
+          enabled: true,
+        },
+      },
+    });
+
+    expect(openagentDefault).toEqual({ enabled: false, reason: "bundled (disabled by default)" });
+    expect(orchestratorDefault).toEqual({
+      enabled: false,
+      reason: "bundled (disabled by default)",
+    });
+    expect(resolveEnableState("openagent-acp", "bundled", explicitlyEnabled)).toEqual({
+      enabled: true,
+    });
+    expect(resolveEnableState("orchestrator-control", "bundled", explicitlyEnabled)).toEqual({
+      enabled: true,
+    });
+  });
 });

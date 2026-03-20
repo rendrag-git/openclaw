@@ -1,0 +1,12 @@
+{
+  "name": "@openclaw/openagent-acp",
+  "version": "2026.3.18",
+  "private": true,
+  "description": "OpenClaw ACP runtime backend via openagent",
+  "type": "module",
+  "openclaw": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}

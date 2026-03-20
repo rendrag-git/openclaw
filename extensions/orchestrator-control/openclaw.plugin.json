@@ -1,0 +1,10 @@
+{
+  "id": "orchestrator-control",
+  "name": "Orchestrator Control",
+  "description": "Minimal control-plane gateway surface for orchestrator job creation and status.",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
+}

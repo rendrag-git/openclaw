@@ -1,0 +1,12 @@
+{
+  "name": "@openclaw/orchestrator-control",
+  "version": "2026.3.18",
+  "private": true,
+  "description": "OpenClaw orchestrator control-plane plugin",
+  "type": "module",
+  "openclaw": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}
