@@ -1,5 +1,6 @@
 import type { Command } from "commander";
 import JSON5 from "json5";
+import { assertConfigSetPathAllowed } from "../config/config-set-policy.js";
 import { readConfigFileSnapshot, replaceConfigFile } from "../config/config.js";
 import { formatConfigIssueLines, normalizeConfigIssues } from "../config/issue-format.js";
 import { CONFIG_PATH } from "../config/paths.js";
@@ -1214,6 +1215,9 @@ export async function runConfigSet(opts: {
       )
     ) {
       throw new Error(formatPluginInstallConfigSetError());
+    }
+    for (const operation of operations) {
+      assertConfigSetPathAllowed(operation.requestedPath, { source: "cli" });
     }
     const snapshot = await loadValidConfig(runtime);
     // Use snapshot.resolved (config after $include and ${ENV} resolution, but BEFORE runtime defaults)

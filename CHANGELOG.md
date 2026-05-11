@@ -6,6 +6,7 @@ Docs: https://docs.openclaw.ai
 
 ### Changes
 
+- CLI/chat: add `openclaw experimental` (interactive picker) and `/experimental` (chat list + `enable`/`disable` sub-commands). Both surfaces enumerate flags from the config schema (no hand-maintained list) and write through the same prototype-key, schema-validation, secret-policy, and hash-based concurrency checks `openclaw config set` runs, gated by a shared `isConfigSetPathAllowed` policy seam so the picker is provably a subset of what `config set` accepts. Thanks @rendrag-git.
 - Providers/NVIDIA: add the NVIDIA provider with API-key onboarding, setup docs, static catalog metadata, and literal model-ref picker support so NVIDIA hosted models can be selected with their provider prefix intact. (#71204) Thanks @eleqtrizit.
 - Messages: add global `messages.visibleReplies` so operators can require visible output to go through `message(action=send)` for any source chat, while `messages.groupChat.visibleReplies` stays available as the group/channel override. Thanks @scoootscooob.
 - Gateway/dev: run `pnpm gateway:watch` through a named tmux session by default, with `gateway:watch:raw` and `OPENCLAW_GATEWAY_WATCH_TMUX=0` for foreground mode, so repeated starts respawn an inspectable watcher without trapping the invoking agent shell. Thanks @vincentkoc.

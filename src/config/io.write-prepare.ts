@@ -7,7 +7,7 @@ import type { OpenClawConfig } from "./types.js";
 const OPEN_DM_POLICY_ALLOW_FROM_RE =
   /^(?<policyPath>[a-z0-9_.-]+)\s*=\s*"open"\s+requires\s+(?<allowPath>[a-z0-9_.-]+)(?:\s+\(or\s+[a-z0-9_.-]+\))?\s+to include "\*"$/i;
 
-const MANAGED_CONFIG_UNSET_PATHS = [["plugins", "installs"]] as const;
+export const MANAGED_CONFIG_UNSET_PATHS = [["plugins", "installs"]] as const;
 
 function cloneUnknown<T>(value: T): T {
   return structuredClone(value);

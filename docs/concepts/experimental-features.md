@@ -19,6 +19,27 @@ Treat them differently from normal config:
 - If you are rolling OpenClaw out broadly, test experimental flags in a smaller
   environment before baking them into a shared baseline.
 
+## Quick toggle
+
+Three surfaces share one schema-derived implementation, so the picker stays in
+lockstep with whichever experimental flags the schema generator currently
+exposes:
+
+- `openclaw experimental` opens an interactive picker. Space selects, Enter
+  confirms; selections write back to `openclaw.json`.
+- `/experimental` in any chat channel (`whatsapp`, `discord`, `telegram`,
+  the TUI, ...) lists current state. Owners can flip a single flag with
+  `/experimental enable <key>` or `/experimental disable <key>`.
+
+All three surfaces walk the same config schema (no hand-maintained list) and
+write through the same validation primitives that `openclaw config set` uses
+(prototype-key guard, schema validation, secret-policy check, hash-based
+optimistic concurrency). A path that `config set` would refuse, the picker
+will not surface — see [`src/config/config-set-policy.ts`](https://github.com/openclaw/openclaw/blob/main/src/config/config-set-policy.ts)
+for the shared seam.
+
+Restart the gateway after toggling.
+
 ## Currently documented flags
 
 | Surface                  | Key                                                       | Use it when                                                                                                    | More                                                                                          |
