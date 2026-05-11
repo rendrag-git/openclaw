@@ -5,7 +5,7 @@ import {
   listExperimentalFlagsForUi,
   type ExperimentalFlagState,
   type ExperimentalToggle,
-} from "../experimental/experimental-core.js";
+} from "../config/experimental.js";
 import { danger, info, success } from "../globals.js";
 import type { RuntimeEnv } from "../runtime.js";
 import { theme } from "../terminal/theme.js";

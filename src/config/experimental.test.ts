@@ -1,9 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  listExperimentalFlagDescriptors,
-  readBoolAtPath,
-  setBoolAtPath,
-} from "./experimental-flags.js";
+import { listExperimentalFlagDescriptors, readBoolAtPath, setBoolAtPath } from "./experimental.js";
 
 describe("listExperimentalFlagDescriptors", () => {
   it("derives experimental flags from the config schema (no hardcoding)", () => {

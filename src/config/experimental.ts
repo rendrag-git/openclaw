@@ -1,28 +1,32 @@
-// Single shared core for the `openclaw experimental` CLI command, the TUI
-// `/experimental` overlay, and the chat `/experimental` slash command.
+// Schema-derived enumeration and config-set–compatible writes for
+// experimental boolean toggles.
 //
-// All three surfaces enumerate flags via `listExperimentalFlagsForUi` and
-// commit toggles via `applyExperimentalToggles`. Both helpers route through
-// the same validation primitives `openclaw config set` uses
-// (validateConfigObjectRaw, collectUnsupportedSecretRefPolicyIssues,
-// replaceConfigFile with `baseHash` for optimistic concurrency) and the
+// The experimental flag list is never hand-maintained. We walk the merged
+// config schema (`buildConfigSchema`) and select boolean leaves whose dotted
+// path contains an `experimental` segment, pulling labels and help text from
+// the same uiHints map the rest of the config UI uses.
+//
+// Writes route through the same validation primitives `openclaw config set`
+// uses (`validateConfigObjectRaw`, `collectUnsupportedSecretRefPolicyIssues`,
+// `replaceConfigFile` with `baseHash` for optimistic concurrency) and the
 // shared `isConfigSetPathAllowed` policy seam, so the picker is provably a
 // subset of what `config set` would accept.
 
-import { assertConfigSetPathAllowed } from "../config/config-set-policy.js";
-import { readConfigFileSnapshot, replaceConfigFile } from "../config/config.js";
-import {
-  listExperimentalFlagDescriptors,
-  readBoolAtPath,
-  setBoolAtPath,
-  type ExperimentalFlagDescriptor,
-} from "../config/experimental-flags.js";
-import { formatConfigIssueLines } from "../config/issue-format.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
-import {
-  collectUnsupportedSecretRefPolicyIssues,
-  validateConfigObjectRaw,
-} from "../config/validation.js";
+import { assertConfigSetPathAllowed, isConfigSetPathAllowed } from "./config-set-policy.js";
+import { readConfigFileSnapshot, replaceConfigFile } from "./config.js";
+import { formatConfigIssueLines } from "./issue-format.js";
+import type { ConfigUiHint } from "./schema.hints.js";
+import { buildConfigSchema, type ChannelUiMetadata, type PluginUiMetadata } from "./schema.js";
+import { asSchemaObject } from "./schema.shared.js";
+import type { OpenClawConfig } from "./types.openclaw.js";
+import { collectUnsupportedSecretRefPolicyIssues, validateConfigObjectRaw } from "./validation.js";
+
+export type ExperimentalFlagDescriptor = {
+  path: string;
+  segments: readonly string[];
+  label: string;
+  help?: string;
+};
 
 export type ExperimentalFlagState = ExperimentalFlagDescriptor & {
   enabled: boolean;
@@ -73,6 +77,128 @@ export class ExperimentalValidationError extends Error {
   }
 }
 
+type SchemaNode = {
+  type?: string | string[];
+  properties?: Record<string, SchemaNode>;
+  additionalProperties?: SchemaNode | boolean;
+};
+
+function isBooleanLeaf(node: SchemaNode): boolean {
+  const type = node.type;
+  if (type === "boolean") {
+    return true;
+  }
+  if (Array.isArray(type) && type.length === 1 && type[0] === "boolean") {
+    return true;
+  }
+  return false;
+}
+
+function pathContainsExperimentalSegment(segments: readonly string[]): boolean {
+  return segments.some((segment) => segment === "experimental");
+}
+
+function readHint(uiHints: Record<string, ConfigUiHint>, path: string): ConfigUiHint | undefined {
+  return uiHints[path];
+}
+
+function walk(
+  node: SchemaNode,
+  segments: string[],
+  visit: (segments: readonly string[], leaf: SchemaNode) => void,
+): void {
+  if (isBooleanLeaf(node)) {
+    visit(segments, node);
+    return;
+  }
+  const properties = node.properties ?? {};
+  for (const [key, child] of Object.entries(properties)) {
+    const childNode = asSchemaObject(child) as SchemaNode | null;
+    if (!childNode) {
+      continue;
+    }
+    walk(childNode, [...segments, key], visit);
+  }
+}
+
+export function listExperimentalFlagDescriptors(params?: {
+  plugins?: PluginUiMetadata[];
+  channels?: ChannelUiMetadata[];
+}): ExperimentalFlagDescriptor[] {
+  const built = buildConfigSchema({
+    ...(params?.plugins ? { plugins: params.plugins } : {}),
+    ...(params?.channels ? { channels: params.channels } : {}),
+  });
+  const root = asSchemaObject(built.schema) as SchemaNode | null;
+  if (!root) {
+    return [];
+  }
+  const out: ExperimentalFlagDescriptor[] = [];
+  const seen = new Set<string>();
+  walk(root, [], (segments) => {
+    if (!pathContainsExperimentalSegment(segments)) {
+      return;
+    }
+    const path = segments.join(".");
+    if (seen.has(path)) {
+      return;
+    }
+    // Honour the same allowlist `openclaw config set` honours: if the policy
+    // seam blocks this path, the picker must not surface it either.
+    if (!isConfigSetPathAllowed(segments, { source: "experimental" }).ok) {
+      return;
+    }
+    const hint = readHint(built.uiHints, path);
+    seen.add(path);
+    out.push({
+      path,
+      segments: [...segments],
+      label: hint?.label ?? path,
+      ...(hint?.help ? { help: hint.help } : {}),
+    });
+  });
+  out.sort((a, b) => a.path.localeCompare(b.path));
+  return out;
+}
+
+export function readBoolAtPath(root: unknown, segments: readonly string[]): boolean {
+  let cursor: unknown = root;
+  for (const segment of segments) {
+    if (!cursor || typeof cursor !== "object" || Array.isArray(cursor)) {
+      return false;
+    }
+    cursor = (cursor as Record<string, unknown>)[segment];
+  }
+  return cursor === true;
+}
+
+export function setBoolAtPath(
+  root: Record<string, unknown>,
+  segments: readonly string[],
+  value: boolean,
+): void {
+  if (segments.length === 0) {
+    throw new Error("setBoolAtPath requires at least one segment");
+  }
+  let cursor: Record<string, unknown> = root;
+  for (let i = 0; i < segments.length - 1; i += 1) {
+    const segment = segments[i];
+    if (!segment) {
+      throw new Error("setBoolAtPath: empty segment");
+    }
+    const next = cursor[segment];
+    if (!next || typeof next !== "object" || Array.isArray(next)) {
+      cursor[segment] = {};
+    }
+    cursor = cursor[segment] as Record<string, unknown>;
+  }
+  const last = segments[segments.length - 1];
+  if (!last) {
+    throw new Error("setBoolAtPath: empty trailing segment");
+  }
+  cursor[last] = value;
+}
+
 function descriptorsWithState(
   descriptors: ExperimentalFlagDescriptor[],
   resolvedRoot: unknown,
@@ -120,7 +246,6 @@ export async function applyExperimentalToggles(
   const applied: ExperimentalToggle[] = [];
   const noOp: ExperimentalToggle[] = [];
   const unknown: string[] = [];
-  const wantedByPath = new Map<string, ExperimentalToggle>();
 
   for (const toggle of toggles) {
     const descriptor = byPath.get(toggle.path);
@@ -139,7 +264,6 @@ export async function applyExperimentalToggles(
       continue;
     }
     applied.push(toggle);
-    wantedByPath.set(descriptor.path, toggle);
   }
 
   if (applied.length === 0) {

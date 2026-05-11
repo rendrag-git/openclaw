@@ -4,7 +4,7 @@ import {
   ExperimentalValidationError,
   listExperimentalFlagsForUi,
   type ExperimentalToggle,
-} from "../../experimental/experimental-core.js";
+} from "../../config/experimental.js";
 import { rejectNonOwnerCommand, rejectUnauthorizedCommand } from "./command-gates.js";
 import type { CommandHandler } from "./commands-types.js";
 
