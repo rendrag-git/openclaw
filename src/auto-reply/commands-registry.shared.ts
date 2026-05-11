@@ -930,6 +930,30 @@ export function buildBuiltinChatCommands(): ChatCommandDefinition[] {
         },
       ],
     }),
+    defineChatCommand({
+      key: "experimental",
+      description:
+        "List or toggle experimental config flags (`/experimental`, `/experimental enable <key>`, `/experimental disable <key>`).",
+      textAlias: "/experimental",
+      scope: "text",
+      category: "management",
+      tier: "power",
+      args: [
+        {
+          name: "action",
+          description: "list | enable | disable",
+          type: "string",
+          choices: ["list", "enable", "disable"],
+        },
+        {
+          name: "key",
+          description: "Experimental flag path",
+          type: "string",
+          captureRemaining: true,
+        },
+      ],
+      argsMenu: "auto",
+    }),
   ];
 
   registerAlias(commands, "whoami", "/id");
