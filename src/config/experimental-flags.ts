@@ -169,7 +169,7 @@ export function applyExperimentalConfigSelection(
 } {
   const states = readExperimentalConfigFlagStates(root);
   const deltas = states.flatMap((state) =>
-    selectedPaths.has(state.path) === state.on
+    selectedPaths.has(state.path) === state.on && (state.on || state.authored)
       ? []
       : [{ ...state, next: selectedPaths.has(state.path) }],
   );

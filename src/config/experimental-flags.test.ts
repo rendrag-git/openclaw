@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   applyExperimentalConfigFlagValue,
+  applyExperimentalConfigSelection,
   listExperimentalConfigFlags,
   resolveExperimentalConfigFlag,
 } from "./experimental-flags.js";
@@ -64,5 +65,29 @@ describe("experimental config flags", () => {
 
     expect(delta).toBeNull();
     expect(nextConfig).toEqual(root);
+  });
+
+  it("writes explicit false for absent unselected picker flags", () => {
+    const { nextConfig, deltas } = applyExperimentalConfigSelection(
+      {},
+      new Set(["agents.defaults.experimental.localModelLean"]),
+    );
+
+    expect(deltas.map((delta) => ({ path: delta.path, next: delta.next }))).toEqual([
+      { path: "agents.defaults.experimental.localModelLean", next: true },
+      { path: "agents.defaults.memorySearch.experimental.sessionMemory", next: false },
+      { path: "tools.experimental.planTool", next: false },
+    ]);
+    expect(nextConfig).toMatchObject({
+      agents: {
+        defaults: {
+          experimental: {
+            localModelLean: true,
+          },
+          memorySearch: { experimental: { sessionMemory: false } },
+        },
+      },
+      tools: { experimental: { planTool: false } },
+    });
   });
 });

@@ -43,7 +43,7 @@ describe("runExperimental", () => {
     mocks.createClackPrompter.mockReturnValue(mocks.prompter);
   });
 
-  it("shows the schema-derived experimental subset in the picker", async () => {
+  it("shows the schema-derived experimental subset and persists absent unchecked flags", async () => {
     mocks.readConfigFileSnapshot.mockResolvedValue({
       exists: true,
       valid: true,
@@ -68,7 +68,16 @@ describe("runExperimental", () => {
     expect(prompt.options.map((option: { label: string }) => option.label)).toContain(
       "Enable Structured Plan Tool",
     );
-    expect(mocks.replaceConfigFile).not.toHaveBeenCalled();
+    expect(mocks.replaceConfigFile).toHaveBeenCalledOnce();
+    expect(mocks.replaceConfigFile.mock.calls[0]?.[0].nextConfig).toEqual({
+      agents: {
+        defaults: {
+          experimental: { localModelLean: false },
+          memorySearch: { experimental: { sessionMemory: false } },
+        },
+      },
+      tools: { experimental: { planTool: true } },
+    });
   });
 
   it("writes only changed experimental booleans onto the resolved source config", async () => {
@@ -95,7 +104,12 @@ describe("runExperimental", () => {
     const replaceParams = mocks.replaceConfigFile.mock.calls[0]?.[0];
     expect(replaceParams.baseHash).toBe("config-1");
     expect(replaceParams.nextConfig).toEqual({
-      agents: { defaults: { experimental: { localModelLean: true } } },
+      agents: {
+        defaults: {
+          experimental: { localModelLean: true },
+          memorySearch: { experimental: { sessionMemory: false } },
+        },
+      },
       tools: { experimental: { planTool: true } },
     });
   });
