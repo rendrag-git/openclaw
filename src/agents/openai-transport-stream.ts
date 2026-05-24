@@ -3371,11 +3371,22 @@ export function buildOpenAICompletionsParams(
   }
   {
     const effectiveMaxTokens = resolveOpenAICompletionsMaxTokens(model, options);
-    if (effectiveMaxTokens) {
+    const contextWindow =
+      typeof model.contextWindow === "number" && Number.isFinite(model.contextWindow)
+        ? model.contextWindow
+        : undefined;
+    const clampedMaxTokens =
+      compatDetection.capabilities.usesExplicitProxyLikeEndpoint &&
+      effectiveMaxTokens !== undefined &&
+      contextWindow !== undefined &&
+      effectiveMaxTokens >= contextWindow
+        ? contextWindow - 1
+        : effectiveMaxTokens;
+    if (clampedMaxTokens) {
       if (compat.maxTokensField === "max_tokens") {
-        params.max_tokens = effectiveMaxTokens;
+        params.max_tokens = clampedMaxTokens;
       } else {
-        params.max_completion_tokens = effectiveMaxTokens;
+        params.max_completion_tokens = clampedMaxTokens;
       }
     }
   }
