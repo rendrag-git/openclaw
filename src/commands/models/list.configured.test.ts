@@ -73,4 +73,51 @@ describe("resolveConfiguredEntries", () => {
     expect(entries[0]?.aliases).toEqual(["Kilo Gemini"]);
     expect(entries[0]?.tags).toEqual(new Set(["default", "configured"]));
   });
+
+  it("does NOT surface provider wildcards (e.g. vllm/*) as catalog rows", () => {
+    // Regression: agents.defaults.models is a visibility policy, not a
+    // catalog — wildcards like `vllm/*` were surfacing as `key: "vllm/*"`,
+    // `name: "*"` rows alongside real models. The picker rewrite's
+    // null-vs-empty contract treats wildcards as policy filters only.
+    // Linear REN-685.
+    const { entries } = resolveConfiguredEntries({
+      agents: {
+        defaults: {
+          model: { primary: "vllm/qwen3-5-122b-a10b-nvfp4", fallbacks: [] },
+          models: {
+            "vllm/*": {},
+            "openai/gpt-5.5": {},
+          },
+        },
+      },
+      models: {
+        providers: {
+          vllm: {
+            baseUrl: "http://vllm.local/v1",
+            apiKey: "vllm-local",
+            api: "openai-completions",
+            models: [
+              {
+                id: "qwen3-5-122b-a10b-nvfp4",
+                name: "qwen3-5-122b-a10b-nvfp4",
+                reasoning: false,
+                input: ["text"],
+                cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+                contextWindow: 128000,
+                maxTokens: 8192,
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    // The literal `vllm/*` row from the policy must NOT appear in the
+    // CLI catalog listing — but the explicit `openai/gpt-5.5` policy
+    // entry still surfaces (it's a concrete ref).
+    expect(entries.map((entry) => entry.key)).not.toContain("vllm/*");
+    expect(entries.find((entry) => entry.ref.model === "*")).toBeUndefined();
+    expect(entries.some((entry) => entry.key === "vllm/qwen3-5-122b-a10b-nvfp4")).toBe(true);
+    expect(entries.some((entry) => entry.key === "openai/gpt-5.5")).toBe(true);
+  });
 });

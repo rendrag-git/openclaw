@@ -73,6 +73,14 @@ export function resolveConfiguredEntries(cfg: OpenClawConfig) {
   });
 
   for (const key of Object.keys(cfg.agents?.defaults?.models ?? {})) {
+    // Skip provider wildcards (e.g. `vllm/*`, `anthropic/*`). They are
+    // visibility policy, not concrete catalog entries — surfacing them as
+    // a row produces a misleading `key: "vllm/*", name: "*"` listing
+    // alongside the real models. See ADR-0001 §"Plugin contract" and the
+    // picker rewrite's null-vs-empty contract for the dual treatment.
+    if (key.trim().endsWith("/*")) {
+      continue;
+    }
     const resolved = resolveModelRefFromString({
       cfg,
       raw: key,
