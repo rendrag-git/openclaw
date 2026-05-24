@@ -10,7 +10,8 @@
       "dependencies": {
         "@clawdbot/lobster": "2026.4.6",
         "ajv": "8.20.0",
-        "typebox": "1.1.38"
+        "typebox": "1.1.38",
+        "yaml": "2.9.0"
       }
     },
     "node_modules/@clawdbot/lobster": {
