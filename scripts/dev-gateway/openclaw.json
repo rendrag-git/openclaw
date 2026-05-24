@@ -1,0 +1,51 @@
+{
+  "models": {
+    "providers": {
+      "vllm": {
+        "baseUrl": "http://10.68.198.1:31080/v1",
+        "apiKey": "vllm-local",
+        "api": "openai-completions",
+        "models": []
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "vllm/qwen3-5-122b-a10b-nvfp4",
+        "fallbacks": []
+      },
+      "models": {
+        "vllm/*": {}
+      }
+    },
+    "list": [
+      {
+        "id": "main",
+        "default": true,
+        "model": {
+          "primary": "vllm/qwen3-5-122b-a10b-nvfp4"
+        }
+      }
+    ]
+  },
+  "gateway": {
+    "mode": "local",
+    "auth": {
+      "token": "dev-gateway-token"
+    },
+    "bind": "auto"
+  },
+  "plugins": {
+    "entries": {
+      "discord": { "enabled": false },
+      "telegram": { "enabled": false },
+      "slack": { "enabled": false },
+      "whatsapp": { "enabled": false },
+      "mattermost": { "enabled": false },
+      "imessage": { "enabled": false },
+      "matrix": { "enabled": false },
+      "irc": { "enabled": false }
+    }
+  }
+}
