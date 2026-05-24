@@ -4856,6 +4856,51 @@ describe("openai transport stream", () => {
     expect(params.max_completion_tokens).toBe(10_000 - 1_250 - 1);
   });
 
+  it("estimates proxy-like completions input from the final outbound messages after compat transforms", () => {
+    const userText = "ok";
+    const params = buildOpenAICompletionsParams(
+      {
+        id: "qwen3-5-122b-a10b-nvfp4",
+        name: "qwen3-5-122b-a10b-nvfp4",
+        api: "openai-completions",
+        provider: "vllm",
+        baseUrl: "http://localhost:8000/v1",
+        reasoning: false,
+        input: ["text"],
+        cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+        contextWindow: 10_000,
+        maxTokens: 10_000,
+      } satisfies Model<"openai-completions">,
+      {
+        messages: [
+          { role: "user", content: userText, timestamp: 1 },
+          {
+            role: "assistant",
+            content: [{ type: "text", text: "x".repeat(20_000) }],
+            api: "openai-completions",
+            provider: "vllm",
+            model: "qwen3-5-122b-a10b-nvfp4",
+            usage: {
+              input: 0,
+              output: 0,
+              cacheRead: 0,
+              cacheWrite: 0,
+              totalTokens: 0,
+              cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 },
+            },
+            stopReason: "aborted",
+            timestamp: 2,
+          },
+        ],
+        tools: [],
+      } as never,
+      undefined,
+    );
+
+    const estimatedInputTokens = Math.ceil((userText.length / 4) * 1.25);
+    expect(params.max_completion_tokens).toBe(10_000 - estimatedInputTokens - 1);
+  });
+
   it("clamps proxy-like completions output budgets against contextTokens before contextWindow", () => {
     const params = buildOpenAICompletionsParams(
       {
