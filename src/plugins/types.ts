@@ -457,6 +457,20 @@ export type ProviderCatalogResult =
 export type ProviderPluginCatalog = {
   order?: ProviderCatalogOrder;
   run: (ctx: ProviderCatalogContext) => Promise<ProviderCatalogResult>;
+  /**
+   * Per-provider single-shot discovery for the picker hot path.
+   *
+   * Per ADR-0001 §"Plugin contract", `runOne` returns only this one
+   * provider's models. Implementations MUST be cheap (p95 ≤ 1 s under
+   * healthy auth + reachable endpoint) and MUST NOT load auth storage,
+   * manifest snapshot, or other providers' state.
+   *
+   * Errors thrown as structured classes from `src/picker/errors.ts`.
+   *
+   * Bundled providers add this hook in REN-680 (extension issue).
+   * Until then, callers MUST fall back to `run` for the global flow.
+   */
+  runOne?: (ctx: ProviderCatalogContext) => Promise<ProviderCatalogResult>;
 };
 
 export type UnifiedModelCatalogProviderContext = ProviderCatalogContext & {

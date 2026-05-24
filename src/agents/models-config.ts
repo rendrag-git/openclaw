@@ -135,7 +135,10 @@ function resolveModelsConfigInput(config?: OpenClawConfig): {
   };
 }
 
-async function withModelsJsonWriteLock<T>(targetPath: string, run: () => Promise<T>): Promise<T> {
+export async function withModelsJsonWriteLock<T>(
+  targetPath: string,
+  run: () => Promise<T>,
+): Promise<T> {
   const prior = MODELS_JSON_STATE.writeLocks.get(targetPath) ?? Promise.resolve();
   let release: () => void = () => {};
   const gate = new Promise<void>((resolve) => {

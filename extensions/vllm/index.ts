@@ -69,6 +69,17 @@ export default definePluginEntry({
             buildProvider: buildVllmProvider,
           });
         },
+        // Per ADR-0001: per-provider single-shot discovery for the picker
+        // hot path. The vLLM endpoint check is ~10 ms, so the same body as
+        // `run` already satisfies the cheap-and-isolated contract.
+        runOne: async (ctx) => {
+          const providerSetup = await loadProviderSetup();
+          return await providerSetup.discoverOpenAICompatibleSelfHostedProvider({
+            ctx,
+            providerId: PROVIDER_ID,
+            buildProvider: buildVllmProvider,
+          });
+        },
       },
       wizard: {
         setup: {
