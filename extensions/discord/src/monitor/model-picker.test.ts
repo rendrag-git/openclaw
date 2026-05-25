@@ -1245,7 +1245,7 @@ describe("Discord model picker recents view", () => {
     expect(backState.view).toBe("models");
   });
 
-  it("preserves explicit runtime state on recents submit and back buttons", () => {
+  it("preserves explicit runtime state only on recents back buttons", () => {
     const data = createModelsProviderData({
       openai: ["gpt-4.1", "gpt-4o"],
     });
@@ -1272,8 +1272,8 @@ describe("Discord model picker recents view", () => {
       "recents back button custom id should parse",
     );
 
-    expect(defaultState.runtime).toBe("codex");
-    expect(recentState.runtime).toBe("codex");
+    expect(defaultState.runtime).toBeUndefined();
+    expect(recentState.runtime).toBeUndefined();
     expect(backState.runtime).toBe("codex");
   });
 
@@ -1300,8 +1300,9 @@ describe("Discord model picker recents view", () => {
         "recents custom id should parse",
       );
     });
-    expect(states.every((state) => state.runtime === undefined)).toBe(true);
-    expect(states.every((state) => state.runtimeIndex === 1)).toBe(true);
+    expect(states[0]?.runtimeIndex).toBeUndefined();
+    expect(states[1]?.runtimeIndex).toBeUndefined();
+    expect(states[2]?.runtimeIndex).toBe(1);
   });
 
   it("includes (default) suffix on default model button label", () => {
