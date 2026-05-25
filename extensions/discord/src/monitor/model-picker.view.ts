@@ -474,11 +474,8 @@ function buildModelRows(params: {
   });
 
   if (runtimeChoices.length > 1) {
-    // Codex P2: encode modelBucket on the runtime customId only when no
-    // pending model is set. When a pending model is set the handler can
-    // derive the bucket from the model id; when nothing is pending the
-    // user is browsing inside a non-first bucket, so encoding the bucket
-    // is the only way to bring them back to it after the runtime change.
+    // The selected runtime travels in the select interaction value; omitting
+    // it here leaves enough customId budget to preserve the browse bucket.
     rows.push(
       new Row([
         createModelSelect({
@@ -487,7 +484,6 @@ function buildModelRows(params: {
             action: "runtime",
             view: "models",
             provider: params.modelPage.provider,
-            runtime: selectedRuntime,
             page: params.modelPage.page,
             providerPage: providerPage.page,
             modelIndex: params.pendingModelIndex,

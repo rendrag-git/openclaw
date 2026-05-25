@@ -598,6 +598,50 @@ describe("Discord model picker rendering", () => {
     }
   });
 
+  it("runtime select preserves bucket state without exceeding Discord's customId limit", () => {
+    const models = Array.from({ length: 30 }, (_, i) => `qwen3-${String(i + 1).padStart(2, "0")}`);
+    const data = createModelsProviderData({ google: models });
+    data.runtimeChoicesByProvider = new Map([
+      [
+        "google",
+        [
+          { id: "google-gemini-cli", label: "Google Gemini CLI" },
+          { id: "pi", label: "OpenClaw Pi Default" },
+        ],
+      ],
+    ]);
+
+    const rows = renderModelsViewRows({
+      command: "models",
+      userId: "12345678901234567890",
+      data,
+      provider: "google",
+      page: 1,
+      providerPage: 1,
+      modelBucket: "21-30",
+      currentRuntime: "google-gemini-cli",
+    });
+
+    const runtimeSelect = rows
+      .flatMap((row) => row.components ?? [])
+      .find((component) => {
+        const parsed = parseDiscordModelPickerCustomId(component.custom_id ?? "");
+        return parsed?.action === "runtime";
+      });
+    const runtimeCustomId = requireValue(
+      runtimeSelect?.custom_id,
+      "models view should render a runtime select",
+    );
+    const parsed = requireValue(
+      parseDiscordModelPickerCustomId(runtimeCustomId),
+      "runtime select custom id should parse",
+    );
+
+    expect(runtimeCustomId.length).toBeLessThanOrEqual(DISCORD_CUSTOM_ID_MAX_CHARS);
+    expect(parsed.modelBucket).toBe("21-30");
+    expect(parsed.runtime).toBeUndefined();
+  });
+
   it("provider pages use Discord's select-option cap when buckets are active", () => {
     const entries: Record<string, string[]> = {};
     for (let i = 1; i <= 30; i += 1) {
