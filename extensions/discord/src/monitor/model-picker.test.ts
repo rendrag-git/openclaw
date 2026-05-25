@@ -1089,7 +1089,7 @@ describe("Discord model picker rendering", () => {
     const resetState = parseDiscordModelPickerCustomId(rows[3]?.components?.[2]?.custom_id ?? "");
     expect(resetState?.action).toBe("reset");
     expect(resetState?.runtime).toBeUndefined();
-    expect(resetState?.runtimeIndex).toBeUndefined();
+    expect(resetState?.runtimeIndex).toBe(2);
   });
 
   it("renders not-found model view with a back button", () => {
@@ -1272,8 +1272,8 @@ describe("Discord model picker recents view", () => {
       "recents back button custom id should parse",
     );
 
-    expect(defaultState.runtime).toBeUndefined();
-    expect(recentState.runtime).toBeUndefined();
+    expect(defaultState.runtime).toBe("codex");
+    expect(recentState.runtime).toBe("codex");
     expect(backState.runtime).toBe("codex");
   });
 
@@ -1300,8 +1300,8 @@ describe("Discord model picker recents view", () => {
         "recents custom id should parse",
       );
     });
-    expect(states[0]?.runtimeIndex).toBeUndefined();
-    expect(states[1]?.runtimeIndex).toBeUndefined();
+    expect(states[0]?.runtimeIndex).toBe(1);
+    expect(states[1]?.runtimeIndex).toBe(1);
     expect(states[2]?.runtimeIndex).toBe(1);
   });
 
