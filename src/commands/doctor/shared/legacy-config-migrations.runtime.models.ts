@@ -1021,75 +1021,75 @@ export const LEGACY_CONFIG_MIGRATIONS_RUNTIME_MODELS: LegacyConfigMigrationSpec[
       }
 
       const providerParams = getRecord(vllmProvider?.params);
-      const providerLegacyFormat = providerParams
-        ? getLegacyVllmQwenThinkingFormat(providerParams)
-        : undefined;
-      if (providerLegacyFormat) {
-        const providerModelIds = [
-          ...collectVllmModelIdsFromSelection(agentsDefaults?.model),
-          ...collectVllmModelIdsFromAgentModelMap(defaultModels),
-          ...collectVllmModelIdsFromAgentList(getRecord(raw.agents)?.list),
-        ];
-        const targets = combineVllmModelTargets(
-          listExistingVllmModelTargets(raw),
-          createVllmModelTargets(raw, providerModelIds),
-        );
-        if (targets.length === 0) {
-          removeUntargetedLegacyVllmQwenThinkingFormat({
-            sourcePath: "models.providers.vllm.params",
-            legacyParams: providerParams,
-            legacyFormat: providerLegacyFormat,
-            changes,
-          });
-        } else {
-          for (const target of targets) {
-            applyLegacyVllmQwenThinkingFormat({
+      if (providerParams) {
+        const providerLegacyFormat = getLegacyVllmQwenThinkingFormat(providerParams);
+        if (providerLegacyFormat) {
+          const providerModelIds = [
+            ...collectVllmModelIdsFromSelection(agentsDefaults?.model),
+            ...collectVllmModelIdsFromAgentModelMap(defaultModels),
+            ...collectVllmModelIdsFromAgentList(getRecord(raw.agents)?.list),
+          ];
+          const targets = combineVllmModelTargets(
+            listExistingVllmModelTargets(raw),
+            createVllmModelTargets(raw, providerModelIds),
+          );
+          if (targets.length === 0) {
+            removeUntargetedLegacyVllmQwenThinkingFormat({
               sourcePath: "models.providers.vllm.params",
               legacyParams: providerParams,
-              target,
               legacyFormat: providerLegacyFormat,
               changes,
             });
+          } else {
+            for (const target of targets) {
+              applyLegacyVllmQwenThinkingFormat({
+                sourcePath: "models.providers.vllm.params",
+                legacyParams: providerParams,
+                target,
+                legacyFormat: providerLegacyFormat,
+                changes,
+              });
+            }
           }
-        }
-        if (Object.keys(providerParams).length === 0) {
-          delete vllmProvider?.params;
+          if (Object.keys(providerParams).length === 0) {
+            delete vllmProvider?.params;
+          }
         }
       }
 
       const defaultParams = getRecord(agentsDefaults?.params);
-      const defaultLegacyFormat = defaultParams
-        ? getLegacyVllmQwenThinkingFormat(defaultParams)
-        : undefined;
-      if (defaultLegacyFormat) {
-        const defaultModelIds = [
-          ...collectVllmModelIdsFromSelection(agentsDefaults?.model),
-          ...collectVllmModelIdsFromAgentModelMap(defaultModels),
-        ];
-        const targets =
-          defaultModelIds.length > 0
-            ? createVllmModelTargets(raw, defaultModelIds)
-            : listExistingVllmModelTargets(raw);
-        if (targets.length === 0) {
-          removeUntargetedLegacyVllmQwenThinkingFormat({
-            sourcePath: "agents.defaults.params",
-            legacyParams: defaultParams,
-            legacyFormat: defaultLegacyFormat,
-            changes,
-          });
-        } else {
-          for (const target of targets) {
-            applyLegacyVllmQwenThinkingFormat({
+      if (defaultParams) {
+        const defaultLegacyFormat = getLegacyVllmQwenThinkingFormat(defaultParams);
+        if (defaultLegacyFormat) {
+          const defaultModelIds = [
+            ...collectVllmModelIdsFromSelection(agentsDefaults?.model),
+            ...collectVllmModelIdsFromAgentModelMap(defaultModels),
+          ];
+          const targets =
+            defaultModelIds.length > 0
+              ? createVllmModelTargets(raw, defaultModelIds)
+              : listExistingVllmModelTargets(raw);
+          if (targets.length === 0) {
+            removeUntargetedLegacyVllmQwenThinkingFormat({
               sourcePath: "agents.defaults.params",
               legacyParams: defaultParams,
-              target,
               legacyFormat: defaultLegacyFormat,
               changes,
             });
+          } else {
+            for (const target of targets) {
+              applyLegacyVllmQwenThinkingFormat({
+                sourcePath: "agents.defaults.params",
+                legacyParams: defaultParams,
+                target,
+                legacyFormat: defaultLegacyFormat,
+                changes,
+              });
+            }
           }
-        }
-        if (Object.keys(defaultParams).length === 0) {
-          delete agentsDefaults?.params;
+          if (Object.keys(defaultParams).length === 0) {
+            delete agentsDefaults?.params;
+          }
         }
       }
 

@@ -1082,18 +1082,20 @@ function resolveMergedConfiguredModelReasoning(params: {
   resolvedCompat?: { thinkingFormat?: string } | null;
   configuredReasoning?: boolean;
   discoveredReasoning?: boolean;
-}): boolean | undefined {
+}): boolean {
   if (params.configuredReasoning !== undefined) {
     return params.configuredReasoning;
   }
   if (isVllmQwenThinkingCompat({ provider: params.provider, compat: params.configuredCompat })) {
     return true;
   }
-  return resolveConfiguredModelReasoning({
-    provider: params.provider,
-    compat: params.resolvedCompat,
-    reasoning: params.discoveredReasoning,
-  });
+  return (
+    resolveConfiguredModelReasoning({
+      provider: params.provider,
+      compat: params.resolvedCompat,
+      reasoning: params.discoveredReasoning,
+    }) ?? false
+  );
 }
 
 function isVllmQwenThinkingCompat(params: {
