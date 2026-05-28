@@ -11,6 +11,7 @@ import {
   ssrfPolicyFromDangerouslyAllowPrivateNetwork,
 } from "openclaw/plugin-sdk/ssrf-runtime";
 import {
+  isRecord,
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalString,
 } from "openclaw/plugin-sdk/string-coerce-runtime";
@@ -95,10 +96,6 @@ let falFetchGuard = fetchWithSsrFGuard;
 
 export function setFalVideoFetchGuardForTesting(impl: typeof fetchWithSsrFGuard | null): void {
   falFetchGuard = impl ?? fetchWithSsrFGuard;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }
 
 function normalizeFalVideoUrl(value: unknown): string | undefined {
@@ -255,7 +252,11 @@ function resolveFalDuration(
   }
   const duration = Math.max(1, Math.round(durationSeconds));
   if (isFalSeedance2Model(model)) {
-    return String(duration);
+    return SEEDANCE_2_DURATION_SECONDS.includes(
+      duration as (typeof SEEDANCE_2_DURATION_SECONDS)[number],
+    )
+      ? String(duration)
+      : undefined;
   }
   return duration;
 }

@@ -122,7 +122,7 @@ describe("applyModelDefaults", () => {
     expect(next.agents?.defaults?.models?.["google/gemini-3-flash-preview"]?.alias).toBe(
       "gemini-flash",
     );
-    expect(next.agents?.defaults?.models?.["google/gemini-3.1-flash-lite-preview"]?.alias).toBe(
+    expect(next.agents?.defaults?.models?.["google/gemini-3.1-flash-lite"]?.alias).toBe(
       "gemini-flash-lite",
     );
   });
@@ -162,6 +162,32 @@ describe("applyModelDefaults", () => {
     expect(next.agents?.defaults?.model).toEqual({
       primary: "google/gemini-3.1-pro-preview",
       fallbacks: ["google/gemini-3.1-pro-preview", "openai/gpt-5.5"],
+    });
+  });
+
+  it("normalizes the retired Together default primary and fallback refs", () => {
+    const cfg = {
+      agents: {
+        defaults: {
+          model: {
+            primary: "together/moonshotai/Kimi-K2.5",
+            fallbacks: ["together/moonshotai/Kimi-K2.5", "openai/gpt-5.5"],
+          },
+          models: {
+            "together/moonshotai/Kimi-K2.5": {},
+          },
+        },
+      },
+    } satisfies OpenClawConfig;
+
+    const next = applyModelDefaults(cfg);
+
+    expect(next.agents?.defaults?.model).toEqual({
+      primary: "together/moonshotai/Kimi-K2.6",
+      fallbacks: ["together/moonshotai/Kimi-K2.6", "openai/gpt-5.5"],
+    });
+    expect(next.agents?.defaults?.models).toEqual({
+      "together/moonshotai/Kimi-K2.6": {},
     });
   });
 
